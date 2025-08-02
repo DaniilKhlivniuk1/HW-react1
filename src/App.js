@@ -3,8 +3,8 @@ import "./App.css";
 function App() {
   const name = "Daniil";
   const site = { назва: "Amazon", url: "https://www.amazon.es/" };
-  const a = 9;
-  const b = 17;
+  const num1 = 9;
+  const num2 = 17;
   const colors = ["Червоний", "Зелений", "Блакитний"];
 
   return (
@@ -18,7 +18,7 @@ function App() {
       <p>
         Улюблений сайт: <a href={site.url}>{site.назва}</a>
       </p>
-      <p>Сума: {a + b}</p>
+      <p>Сума: {num1 + num2}</p>
       <ul>
         {colors.map((color, index) => (
           <li key={index}>{color}</li>
