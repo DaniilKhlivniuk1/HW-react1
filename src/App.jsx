@@ -1,10 +1,15 @@
 import React, { Component } from "react";
-import { nanoid } from "nanoid";
-import ContactForm from "./components/ContactForm/ContactForm.jsx";
-import ContactList from "./components/ContactList/ContactList.jsx";
-import Filter from "./components/Filter/Filter.jsx";
 import styled from "styled-components";
+import Searchbar from "./components/Searchbar/Searchbar.jsx";
+import ImageGallery from "./components/ImageGallery/ImageGallery.jsx";
+import Button from "./components/Button/Button.jsx";
+import Loader from "./components/Loader/Loader.jsx";
+import Modal from "./components/Modal/Modal.jsx";
 
+const API_KEY = "50072628-8f6f62aa1cc293b82b9b384d5";
+const PER_PAGE = 12;
+
+// Если Box — просто контейнер для всего App
 export const Box = styled.div`
   display: flex;
   flex-direction: column;
@@ -12,71 +17,96 @@ export const Box = styled.div`
   padding: 20px;
 `;
 
-export const Title1 = styled.h1``;
-export const Title2 = styled.h2``;
-
-class App extends Component {
+export default class App extends Component {
   state = {
-    contacts: [
-      { id: "id-1", name: "Rosie Simpson", number: "459-12-56" },
-      { id: "id-2", name: "Hermione Kline", number: "443-89-12" },
-      { id: "id-3", name: "Eden Clements", number: "645-17-79" },
-      { id: "id-4", name: "Annie Copeland", number: "227-91-26" },
-    ],
-    filter: "",
+    query: "",
+    images: [],
+    page: 1,
+    loading: false,
+    showModal: false,
+    largeImageURL: "",
   };
 
   componentDidMount() {
-    const saved = localStorage.getItem("contacts");
-    if (saved) this.setState({ contacts: JSON.parse(saved) });
+    console.log("App змонтовано");
   }
 
-  componentDidUpdate(_, prevState) {
-    if (prevState.contacts !== this.state.contacts) {
-      localStorage.setItem("contacts", JSON.stringify(this.state.contacts));
+  componentDidUpdate(prevProps, prevState) {
+    if (
+      prevState.query !== this.state.query ||
+      prevState.page !== this.state.page
+    ) {
+      this.fetchImages();
     }
   }
 
-  addContact = (name, number) => {
-    const { contacts } = this.state;
-    if (contacts.some(c => c.name.toLowerCase() === name.toLowerCase())) {
-      alert(`${name} is already in contacts`);
-      return;
-    }
-    this.setState(prev => ({
-      contacts: [...prev.contacts, { id: nanoid(), name, number }]
-    }));
+  componentWillUnmount() {
+    console.log("Компонент App буде видалено");
+  }
+
+  fetchImages = () => {
+    const { query, page } = this.state;
+    if (!query) return;
+
+    this.setState({ loading: true });
+
+    const url = `https://pixabay.com/api/?key=${API_KEY}&q=${query}&page=${page}&image_type=photo&orientation=horizontal&per_page=${PER_PAGE}`;
+
+    fetch(url)
+      .then((res) => res.json())
+      .then((data) => {
+        this.setState((prev) => ({
+          images:
+            page === 1 ? data.hits : [...prev.images, ...data.hits],
+        }));
+      })
+      .catch((err) => {
+        console.error("Помилка запиту:", err);
+      })
+      .finally(() => {
+        this.setState({ loading: false });
+      });
   };
 
-  deleteContact = (id) => {
-    this.setState(prev => ({
-      contacts: prev.contacts.filter(c => c.id !== id)
-    }));
+  handleSearch = (query) => {
+    this.setState({
+      query,
+      images: [],
+      page: 1,
+    });
   };
 
-  changeFilter = (e) => {
-    this.setState({ filter: e.target.value });
+  loadMore = () => {
+    this.setState((prev) => ({ page: prev.page + 1 }));
   };
 
-  getFilteredContacts = () => {
-    const { contacts, filter } = this.state;
-    return contacts.filter(c => c.name.toLowerCase().includes(filter.toLowerCase()));
+  openModal = (url) => {
+    this.setState({
+      showModal: true,
+      largeImageURL: url,
+    });
+  };
+
+  closeModal = () => {
+    this.setState({
+      showModal: false,
+      largeImageURL: "",
+    });
   };
 
   render() {
-    const visibleContacts = this.getFilteredContacts();
-    const { filter } = this.state;
+    const { images, loading, showModal, largeImageURL } = this.state;
 
     return (
       <Box>
-        <Title1>Phonebook</Title1>
-        <ContactForm onAddContact={this.addContact} />
-        <Title2>Contacts</Title2>
-        <Filter value={filter} onChange={this.changeFilter} />
-        <ContactList contacts={visibleContacts} onDeleteContact={this.deleteContact} />
+        <Searchbar onSubmit={this.handleSearch} />
+        <ImageGallery images={images} onImageClick={this.openModal} />
+        {loading && <Loader />}
+        {images.length > 0 && !loading && <Button onClick={this.loadMore} />}
+        {showModal && (
+          <Modal largeImageURL={largeImageURL} onClose={this.closeModal} />
+        )}
       </Box>
     );
   }
 }
-
-export default App;
