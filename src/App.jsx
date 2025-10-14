@@ -1,112 +1,52 @@
-import React, { Component } from "react";
-import styled from "styled-components";
-import Searchbar from "./components/Searchbar/Searchbar.jsx";
-import ImageGallery from "./components/ImageGallery/ImageGallery.jsx";
-import Button from "./components/Button/Button.jsx";
-import Loader from "./components/Loader/Loader.jsx";
-import Modal from "./components/Modal/Modal.jsx";
+import React, { useState, useEffect } from "react";
+import { Section } from "./components/Section/Section.jsx";
+import { FeedbackOptions } from "./components/FeedbackOptions/FeedbackOptions.jsx";
+import { Statistics } from "./components/Statistics/Statistics.jsx";
+import { GlobalStyles } from "./GlobalStyles.js";
 
-const API_KEY = "50072628-8f6f62aa1cc293b82b9b384d5";
-const PER_PAGE = 12;
+const App = () => {
+  const [good, setGood] = useState(0);
+  const [neutral, setNeutral] = useState(0);
+  const [bad, setBad] = useState(0);
+  const [total, setTotal] = useState(0);
+  const [positivePercentage, setPositivePercentage] = useState("0%");
 
-// Если Box — просто контейнер для всего App
-export const Box = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 20px;
-`;
-
-export default class App extends Component {
-  state = {
-    query: "",
-    images: [],
-    page: 1,
-    loading: false,
-    showModal: false,
-    largeImageURL: "",
+  const countTotalFeedback = (event) => {
+    const key = event.target.textContent.toLowerCase();
+    if (key === "good") setGood((prev) => prev + 1);
+    if (key === "neutral") setNeutral((prev) => prev + 1);
+    if (key === "bad") setBad((prev) => prev + 1);
   };
 
-  componentDidMount() {
-    console.log("App змонтовано");
-  }
+  useEffect(() => {
+    const totalFeedback = good + neutral + bad;
+    setTotal(totalFeedback);
 
-  componentDidUpdate(prevProps, prevState) {
-    if (
-      prevState.query !== this.state.query ||
-      prevState.page !== this.state.page
-    ) {
-      this.fetchImages();
-    }
-  }
+    const positive = totalFeedback > 0 ? `${Math.round((good * 100) / totalFeedback)}%` : "0%";
+    setPositivePercentage(positive);
+  }, [good, neutral, bad]);
 
-  componentWillUnmount() {
-    console.log("Компонент App буде видалено");
-  }
+  return (
+    <>
+      <GlobalStyles />
+      <Section title="Please leave a feedback">
+        <FeedbackOptions
+          options={["Good", "Neutral", "Bad"]}
+          onLeaveFeedback={countTotalFeedback}
+        />
+      </Section>
 
-  fetchImages = () => {
-    const { query, page } = this.state;
-    if (!query) return;
+      <Section title="Statistics">
+        <Statistics
+          good={good}
+          neutral={neutral}
+          bad={bad}
+          total={total}
+          positivePercentage={positivePercentage}
+        />
+      </Section>
+    </>
+  );
+};
 
-    this.setState({ loading: true });
-
-    const url = `https://pixabay.com/api/?key=${API_KEY}&q=${query}&page=${page}&image_type=photo&orientation=horizontal&per_page=${PER_PAGE}`;
-
-    fetch(url)
-      .then((res) => res.json())
-      .then((data) => {
-        this.setState((prev) => ({
-          images:
-            page === 1 ? data.hits : [...prev.images, ...data.hits],
-        }));
-      })
-      .catch((err) => {
-        console.error("Помилка запиту:", err);
-      })
-      .finally(() => {
-        this.setState({ loading: false });
-      });
-  };
-
-  handleSearch = (query) => {
-    this.setState({
-      query,
-      images: [],
-      page: 1,
-    });
-  };
-
-  loadMore = () => {
-    this.setState((prev) => ({ page: prev.page + 1 }));
-  };
-
-  openModal = (url) => {
-    this.setState({
-      showModal: true,
-      largeImageURL: url,
-    });
-  };
-
-  closeModal = () => {
-    this.setState({
-      showModal: false,
-      largeImageURL: "",
-    });
-  };
-
-  render() {
-    const { images, loading, showModal, largeImageURL } = this.state;
-
-    return (
-      <Box>
-        <Searchbar onSubmit={this.handleSearch} />
-        <ImageGallery images={images} onImageClick={this.openModal} />
-        {loading && <Loader />}
-        {images.length > 0 && !loading && <Button onClick={this.loadMore} />}
-        {showModal && (
-          <Modal largeImageURL={largeImageURL} onClose={this.closeModal} />
-        )}
-      </Box>
-    );
-  }
-}
+export default App;
