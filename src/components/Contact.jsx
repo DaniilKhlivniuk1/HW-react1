@@ -25,19 +25,7 @@ const Info = styled.div`
 `;
 
 const DeleteBtn = styled.button`
-  background-color: #dc3545;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  width: 30px;
-  height: 30px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.2s;
 
-  &:hover {
-    background-color: #c82333;
-  }
 `;
 
 export function Contact({ id, name, number, onDelete }) {

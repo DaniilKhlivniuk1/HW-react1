@@ -3,7 +3,7 @@ import React from "react";
 export function ContactsForm({ onAdd }) {
   return (
     <form action="" onSubmit={onAdd}>
-      <label htmlFor="name">Schreibe dien Freund name, bitte</label>
+      <label htmlFor="name">Enter Name</label>
       <input
         id="name"
         type="text"
@@ -12,7 +12,7 @@ export function ContactsForm({ onAdd }) {
         title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
         required
       />
-      <label htmlFor="tel">Schreibe dien Freund telefonnummer, bitte</label>
+      <label htmlFor="tel">Number</label>
       <input
         id="tel"
         type="tel"
