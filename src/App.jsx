@@ -1,71 +1,50 @@
-import React, { useState, useEffect } from "react";
-import { nanoid } from "nanoid";
-import { ContactsForm } from "./components/ContactsForm";
-import { Filter } from "./components/Filter";
-import { ContactsTest } from "./components/Contacts";
-import { AppStyle } from "./styles/AppStyle";
+import { FeedbackProvider } from "./context/FeedbackContext.jsx";
+import { ContactsProvider } from "./context/ContactsContext.jsx";
 
-function App() {
-  const [contacts, setContacts] = useState(() => {
-    try {
-      const saved = localStorage.getItem("contacts");
-      if (saved) return JSON.parse(saved);
-    } catch (e) {
-  
-    }
-    return [
-      { id: "id-1", name: "Rosie Simpso", number: "459-12-56" },
-      { id: "id-2", name: "Hermione Kline", number: "443-89-12" },
-      { id: "id-3", name: "Eden Clements", number: "645-17-79" },
-      { id: "id-4", name: "Annie Copeland", number: "227-91-26" },
-    ];
-  });
-  const [filter, setFilter] = useState("");
+// Компоненти Feedback
+import { Section } from "./components/Section/Section.jsx";
+import { FeedbackOptions } from "./components/FeedbackOptions/FeedbackOptions.jsx";
+import { Statistics } from "./components/Statistics/Statistics.jsx";
 
-  useEffect(() => {
-    localStorage.setItem("contacts", JSON.stringify(contacts));
-  }, [contacts]);
+// Компоненти Phonebook
+import ContactForm from "./components/ContactForm/ContactForm.jsx";
+import ContactList from "./components/ContactList/ContactList.jsx";
+import Filter from "./components/Filter/Filter.jsx";
 
-  const addContact = (e) => {
-    e.preventDefault();
-    const form = e.target;
-    const name = form.name.value.trim();
-    const number = form.number.value.trim();
-    if (!name || !number) return;
-    const newContact = { id: nanoid(), name, number };
+import { GlobalStyles } from "./GlobalStyles.js";
+import { Box, Title1, Title2 } from "./App.js";
 
-    const isExist = contacts.some(
-      (contact) => contact.name.toLowerCase() === name.toLowerCase()
-    );
-    if (isExist) {
-      alert(`${name} is already in contacts.`);
-    } else {
-      setContacts((prev) => [...prev, newContact]);
-    }
-    form.reset();
-  };
-
-  const deleteContact = (id) => {
-    setContacts((prev) => prev.filter((c) => c.id !== id));
-  };
-
-  const searchContact = (e) => {
-    setFilter(e.target.value);
-  };
-
-  const filteredContacts = contacts.filter((contact) =>
-    contact.name.toLowerCase().includes(filter.toLowerCase())
-  );
-
+const App = () => {
   return (
-    <AppStyle>
-      <h1>Phonebok</h1>
-      <ContactsForm onAdd={addContact} />
-      <h2>Contacts</h2>
-      <Filter value={filter} onChange={searchContact} />
-      <ContactsTest contacts={filteredContacts} onDelete={deleteContact} />
-    </AppStyle>
+    <>
+      <GlobalStyles />
+
+      {/* Секція Feedback */}
+      <FeedbackProvider>
+        <Section title="Please leave feedback">
+          <FeedbackOptions options={["Good", "Neutral", "Bad"]} />
+        </Section>
+
+        <Section title="Statistics">
+          <Statistics />
+        </Section>
+      </FeedbackProvider>
+
+      <p>_______________________________________________________________________</p>
+
+      {/* Секція Phonebook */}
+      <ContactsProvider>
+        <Box>
+          <Title1>Phonebook</Title1>
+          <ContactForm />
+
+          <Title2>Contacts</Title2>
+          <Filter />
+          <ContactList />
+        </Box>
+      </ContactsProvider>
+    </>
   );
-}
+};
 
 export default App;

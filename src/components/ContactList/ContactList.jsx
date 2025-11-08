@@ -8,15 +8,19 @@ const ContactList = () => {
 
   return (
     <List>
-      {visibleContacts.map(({ id, name, number }) => (
-        <ContactItem
-          key={id}
-          id={id}
-          name={name}
-          number={number}
-          onDelete={deleteContact}
-        />
-      ))}
+      {visibleContacts.length > 0 ? (
+        visibleContacts.map((contact) => (
+          <ContactItem
+            key={contact.id}
+            id={contact.id}
+            name={contact.name}
+            number={contact.number}
+            onDelete={deleteContact}
+          />
+        ))
+      ) : (
+        <p>No contacts found</p>
+      )}
     </List>
   );
 };
